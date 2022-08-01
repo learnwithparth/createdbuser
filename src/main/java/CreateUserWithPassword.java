@@ -13,7 +13,7 @@ public class CreateUserWithPassword {
     static Statement stmt;
 
     public static void main(String[] args) {
-        generateMySQLUserFromExcel(new File("StudentList.xlsx"));
+        generateMySQLUserFromExcel(new File("StudentList1.xlsx"));
     }
 
     private static void generateMySQLUserFromExcel(File excelFile) {
@@ -21,7 +21,7 @@ public class CreateUserWithPassword {
         // Specify the URL or text to generate QR Code
         String ID = null;
         String createUserQuery;
-        String assignPrivilegesQuery = "GRANT ALL PRIVILEGES ON *.* TO '" + ID + "'@'%' WITH GRANT OPTION";
+        String assignPrivilegesQuery;
         initializeMySqlDB();
 
         Workbook workbook = null;
@@ -52,11 +52,15 @@ public class CreateUserWithPassword {
                     Cell cell = cellIterator.next();
                     String cellValue = dataFormatter.formatCellValue(cell);
                     ID = cellValue;
-                    createUserQuery = "CREATE USER '" + ID + "'@'%' IDENTIFIED BY '"+ ID + "';";
+
+                    createUserQuery = "CREATE USER '"+ID+"'@'%' IDENTIFIED BY 'password'";
+                    assignPrivilegesQuery = "GRANT ALL PRIVILEGES ON *.* TO '" + ID + "'@'%' WITH GRANT OPTION";
                     try {
-                        stmt.execute(createUserQuery);
+                        stmt.executeUpdate("DROP USER IF EXISTS "+ID);
+                        stmt.executeUpdate(createUserQuery);
+                        stmt.executeUpdate(assignPrivilegesQuery);
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println(e);
                     }
                     System.out.println("User for " + ID + " Generated!!!");
                     totalRecords++;
