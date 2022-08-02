@@ -17,11 +17,8 @@ public class CreateUserWithPassword {
     }
 
     private static void generateMySQLUserFromExcel(File excelFile) {
-        int totalRecords = 0, QRCodeGenrerated = 0, QRCodeNotGenerated = 0;
-        // Specify the URL or text to generate QR Code
         String ID = null;
-        String createUserQuery;
-        String assignPrivilegesQuery;
+        String createUserQuery, createDatabaseQuery, assignPrivilegesQuery;
         initializeMySqlDB();
 
         Workbook workbook = null;
@@ -42,35 +39,35 @@ public class CreateUserWithPassword {
             DataFormatter dataFormatter = new DataFormatter();
 
             Iterator<Row> rowIterator = sheet.rowIterator();
+
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
 
                 // Now let's iterate over the columns of the current row
                 Iterator<Cell> cellIterator = row.cellIterator();
 
+
+
                 while (cellIterator.hasNext()) {
                     Cell cell = cellIterator.next();
                     String cellValue = dataFormatter.formatCellValue(cell);
                     ID = cellValue;
-
-                    createUserQuery = "CREATE USER '"+ID+"'@'%' IDENTIFIED BY 'password'";
-                    assignPrivilegesQuery = "GRANT ALL PRIVILEGES ON *.* TO '" + ID + "'@'%' WITH GRANT OPTION";
+                    createDatabaseQuery = "create database " + ID;
+                    createUserQuery = "CREATE USER '" + ID + "'@'%' IDENTIFIED BY 'password'";
+                    assignPrivilegesQuery = "GRANT ALL PRIVILEGES ON " + ID + ".* TO '" + ID + "'@'%' WITH GRANT OPTION";
                     try {
-                        stmt.executeUpdate("DROP USER IF EXISTS "+ID);
-                        stmt.executeUpdate(createUserQuery);
-                        stmt.executeUpdate(assignPrivilegesQuery);
+                        stmt.execute("drop database if exists " +ID);
+                        stmt.execute("drop user if exists " + ID);
+                        stmt.execute(createDatabaseQuery);
+                        stmt.execute(createUserQuery);
+                        stmt.execute(assignPrivilegesQuery);
+                        System.out.println("Database created with user id : " + ID +" password : password" );
                     } catch (SQLException e) {
                         System.out.println(e);
                     }
-                    System.out.println("User for " + ID + " Generated!!!");
-                    totalRecords++;
-
                 }
             }
         }
-        System.out.println("Total Records: " + totalRecords);
-        System.out.println("Total QRCodeGenerated: " + QRCodeGenrerated);
-        System.out.println("Total QRCodeNotGenerated: " + QRCodeNotGenerated);
         try {
             workbook.close();
         } catch (IOException e) {
@@ -81,12 +78,11 @@ public class CreateUserWithPassword {
     static boolean initializeMySqlDB() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_example", "root", "Abcd@1234");
+            conn = DriverManager.getConnection("jdbc:mysql://172.16.12.254:3306/", "root", "Mysql@123");
             stmt = conn.createStatement();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
         return true;
     }
 
