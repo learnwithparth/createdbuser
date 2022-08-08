@@ -51,7 +51,7 @@ public class CreateUserWithPassword {
                 while (cellIterator.hasNext()) {
                     Cell cell = cellIterator.next();
                     String cellValue = dataFormatter.formatCellValue(cell);
-                    ID = cellValue;
+                    ID = cellValue.toLowerCase();
                     createDatabaseQuery = "create database " + ID;
                     createUserQuery = "CREATE USER '" + ID + "'@'%' IDENTIFIED BY 'password'";
                     assignPrivilegesQuery = "GRANT ALL PRIVILEGES ON " + ID + ".* TO '" + ID + "'@'%' WITH GRANT OPTION";
